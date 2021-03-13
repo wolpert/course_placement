@@ -96,7 +96,6 @@ while (course_to_process!=nil)
     course_to_process = next_undercapacity_or_largest_course(courses_capacity_order, courses_selected, capacity)
 end
 
-
 # HACK HACK HACK HACK
 class Array
     def find_duplicates
@@ -110,8 +109,6 @@ all_students = []
 master_list.values.each{|s| all_students << s}
 all_students << students.keys
 all_students.flatten!
-puts "Dups: #{all_students.find_duplicates}"
-
 
 #puts "Result: #{master_list}"
 puts "Left over students #{students}"
@@ -134,3 +131,5 @@ File.open(outfilename, "w") do |file|
     undercapacity.each{|course, size| file.puts "#{course},#{size}"} 
 end
 puts "Wrote undercapacity to #{outfilename}"
+
+puts "WARNING: Validation failed... " if (all_students.find_duplicates.size>0)
