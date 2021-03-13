@@ -101,8 +101,6 @@ end
 class Array
     def find_duplicates
       select.with_index do |e, i|
-        i
-        self.index(e)
         i != self.index(e)
       end
     end
