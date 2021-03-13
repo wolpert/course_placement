@@ -81,6 +81,13 @@ def clear_student_from_course(course_students, students, courses_selected)
     end
 end
 
+# Returns the list of students ordered by those with the least remaining courses first
+def get_students_with_least_available(course_students, students, course_size)
+    # Shuffle first since many students have same number.
+    order_list=course_students.shuffle.sort{|a,b| students[a].size <=> students[b].size} # increase course size
+    return order_list[0, course_size]
+end
+
 master_list={}
 undercapacity={}
 
@@ -89,7 +96,8 @@ while (course_to_process!=nil)
     course_students=courses_selected.delete(course_to_process)
     course_size=capacity[course_to_process]
     undercapacity[course_to_process]= course_size - course_students.size if course_size > course_students.size
-    student_list = course_students.shuffle[0,course_size] # Get capacity for the course
+    #student_list = course_students.shuffle[0,course_size] # Get capacity for the course
+    student_list = get_students_with_least_available(course_students, students, course_size)
     master_list[course_to_process] = student_list
     courses_capacity_order.delete(course_to_process)
     clear_student_from_course(student_list, students, courses_selected)
