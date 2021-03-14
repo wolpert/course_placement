@@ -8,7 +8,20 @@ Input is a csv file where the first line contains course names with their capaci
 and each line after that is the student with a 1 in the column if they want to be
 in that course.
 
+## Usage
+
+Execute ```ruby priority.rb testfile.csv```
+
+This will run the program trying to make sure the largest classes are processed
+first. If you want to run with the smallest processed first, use this:
+
+```run priority -small testfile.csv```
+
 ## Incomplete
+
+Do not use this as a good example of a ruby program please... it was writen fairly
+quickly to solve a placement problem. If this gets used more, I'll refactor so its
+reasonable.
 
 Uses a simply priority algo to solve. However, optimal student placement isn't
 done yet. So you can run it multiple times to try to reduce the students left

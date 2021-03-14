@@ -1,14 +1,34 @@
-raise "No csv given" unless ARGV.length>0
+# Using the base ruby lang with no libraries so it easy to run on a mac... I
+# need to make no assumptions that the caller will have ruby properly installed
+# and they run with bundler, etc....
 
-filename=ARGV[0]
+
+#Defaults
+@args={:large_first=>true}
+filename=nil
+
+ARGV.each do |arg|
+    case arg
+    when "-small"
+        @args[:large_first]=false
+    when "-large"
+        @args[:large_first]=true
+    else
+        filename=arg
+    end
+end
+
+raise "No csv given" unless filename
+
+puts "Running against file #{filename} with args #{@args}"
 
 # Reading the CSV without relying on a CSV extension.
-# Assumes first row is course names.
 capacity=nil
 students={}
 lookup=[]
 
 # Assumes each entry past the first col is course number. Warning, lookup is modified.
+# Expect:  ID,course1:20,course2:40,...
 def process_course(line,lookup)
     hash={}
     line.split(",").drop(1).each do |course_capacity|
@@ -19,6 +39,7 @@ def process_course(line,lookup)
     return hash
 end
 
+# Grab the students... if capacity isn't already set.
 IO.foreach(filename) do |line|
     if capacity
         student=nil
@@ -51,6 +72,10 @@ end
 
 # Create a course capacity list from decreasing class size.
 courses_capacity_order = capacity.keys.sort{|a,b| capacity[b] <=> capacity[a]}
+
+#Override....
+courses_capacity_order.reverse! if !@args[:large_first]
+
 puts "courses_capacity_order #{courses_capacity_order}"
 
 
@@ -69,12 +94,12 @@ def next_undercapacity_or_largest_course(courses_capacity_order, courses_selecte
     return courses_capacity_order[0]
 end
 
-
+# When students are put in a course, we remove them from the others...
 def clear_student_from_course(course_students, students, courses_selected)
     course_students.each do |student|
         # Now, go to the courses for that student, and remove them from the other courses.
         students[student].each do |course|
-            courses_selected[course].delete(student) if courses_selected.has_key?(course) # Course may have been deleted
+            courses_selected[course].delete(student) if courses_selected.has_key?(course) # Course may have been deleted... and our hash autocreates
         end
         # Remove the student...
         students.delete(student)
@@ -82,6 +107,8 @@ def clear_student_from_course(course_students, students, courses_selected)
 end
 
 # Returns the list of students ordered by those with the least remaining courses first
+# Figuring out which students to keep or remove is the next optimization that needs to
+# happen.
 def get_students_with_least_available(course_students, students, course_size)
     # Shuffle first since many students have same number.
     order_list=course_students.shuffle.sort{|a,b| students[a].size <=> students[b].size} # increase course size
@@ -91,6 +118,9 @@ end
 master_list={}
 undercapacity={}
 
+
+# Finally, we can get to work. For courses that are either under capacity, or 'in order' due to 
+# override, we will call them good and remove excess students from the course.
 course_to_process = next_undercapacity_or_largest_course(courses_capacity_order, courses_selected, capacity)
 while (course_to_process!=nil)
     course_students=courses_selected.delete(course_to_process)
@@ -104,7 +134,7 @@ while (course_to_process!=nil)
     course_to_process = next_undercapacity_or_largest_course(courses_capacity_order, courses_selected, capacity)
 end
 
-# HACK HACK HACK HACK
+# HACK HACK HACK HACK... monkey patch is fun kids! But is this really necessary?
 class Array
     def find_duplicates
       select.with_index do |e, i|
