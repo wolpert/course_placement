@@ -158,6 +158,16 @@ File.open(outfilename, "w") do |file|
 end
 puts "Wrote results to #{outfilename}"
 
+
+outfilename="studentSelection.csv"
+File.open(outfilename, "w") do |file|
+    master_list.each do |course, students|
+        students.each{|student| file.puts "#{student},#{course}"}
+    end 
+end
+puts "Wrote student selection to #{outfilename}"
+
+
 outfilename="leftovers.csv"
 File.open(outfilename, "w") do |file|
     students.each{|student, courses| file.puts "#{student},#{courses.join(',')}"} 
